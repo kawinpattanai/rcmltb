@@ -106,21 +106,22 @@ async def mirror_leech(client, message, isLeech=False, sameDir=None):
 
     @new_task
     async def _run_multi():
-        if multi > 1:
-            await sleep(5)
-            msg = [s.strip() for s in message_args]
-            index = msg.index("-i")
-            msg[index + 1] = f"{multi - 1}"
-            nextmsg = await client.get_messages(
-                message.chat.id, message.reply_to_message.id + 1
-            )
-            nextmsg = await sendMessage(" ".join(msg), nextmsg)
-            nextmsg = await client.get_messages(message.chat.id, nextmsg.id)
-            if folder_name:
-                sameDir["tasks"].add(nextmsg.id)
-            nextmsg.from_user = message.from_user
-            await sleep(5)
-            await mirror_leech(client, nextmsg, isLeech, sameDir)
+        if multi <= 1:
+            return
+        await sleep(5)
+        msg = [s.strip() for s in message_args]
+        index = msg.index("-i")
+        msg[index + 1] = f"{multi - 1}"
+        nextmsg = await client.get_messages(
+            message.chat.id, message.reply_to_message.id + 1
+        )
+        nextmsg = await sendMessage(" ".join(msg), nextmsg)
+        nextmsg = await client.get_messages(message.chat.id, nextmsg.id)
+        if folder_name:
+            sameDir["tasks"].add(nextmsg.id)
+        nextmsg.from_user = message.from_user
+        await sleep(5)
+        await mirror_leech(client, nextmsg, isLeech, sameDir)
 
     _run_multi()
 
@@ -344,12 +345,13 @@ async def handle_auto_mirror(client, message):
         or message.animation
         or None
     )
-    if username := message.from_user.username:
-        tag = f"@{username}"
-    else:
-        tag = message.from_user.mention
     if file is not None:
         if file.mime_type != "application/x-bittorrent":
+            tag = (
+                f"@{username}"
+                if (username := message.from_user.username)
+                else message.from_user.mention
+            )
             listener = TaskListener(message, tag, user_id)
             tgdown = TelegramDownloader(
                 file, client, listener, f"{DOWNLOAD_DIR}{listener.uid}/"

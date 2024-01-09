@@ -54,11 +54,7 @@ async def load_config():
         TELEGRAM_API_HASH = config_dict["TELEGRAM_API_HASH"]
 
     OWNER_ID = environ.get("OWNER_ID", "")
-    if len(OWNER_ID) == 0:
-        OWNER_ID = config_dict["OWNER_ID"]
-    else:
-        OWNER_ID = int(OWNER_ID)
-
+    OWNER_ID = config_dict["OWNER_ID"] if len(OWNER_ID) == 0 else int(OWNER_ID)
     DATABASE_URL = environ.get("DATABASE_URL", "")
     if len(DATABASE_URL) == 0:
         DATABASE_URL = ""
@@ -375,7 +371,6 @@ async def config_menu(user_id, message, edit=False):
     msg = "❇️ **Rclone configuration**"
     rclone_conf = f"rclone/{user_id}/rclone.conf"
     token_pickle = f"tokens/{user_id}.pickle"
-    debrid_token= "debrid/debrid_token.txt"
     remotes = ""
     buttons = ButtonMaker()
 
@@ -395,7 +390,7 @@ async def config_menu(user_id, message, edit=False):
             remotes += f"- {remote}\n"
         msg += "\n\n**Here is list of drives in config file:**"
         msg += f"\n{remotes}"
-    
+
     if ospath.exists(rclone_conf):
         buttons.cb_buildbutton("🗂 rclone.conf", f"configmenu^get_rclone_conf^{user_id}")
         buttons.cb_buildbutton("🗑 rclone.conf", f"configmenu^delete_clone_conf^{user_id}")
@@ -413,7 +408,7 @@ async def config_menu(user_id, message, edit=False):
             )
 
     if CustomFilters.sudo_filter("", message):
-        global_rc = f"rclone/rclone_global/rclone.conf"
+        global_rc = "rclone/rclone_global/rclone.conf"
         if ospath.exists(global_rc):
             buttons.cb_buildbutton(
                 "🗂 rclone.conf (🌐)", f"configmenu^get_global_rclone_conf^{user_id}"
@@ -435,6 +430,7 @@ async def config_menu(user_id, message, edit=False):
             buttons.cb_buildbutton(
                 "📃 accounts.zip", f"configmenu^add_accounts^{user_id}" ,"footer_second"
             )
+        debrid_token= "debrid/debrid_token.txt"
         if ospath.exists(debrid_token):
             buttons.cb_buildbutton("🗂 debrid.token", f"configmenu^get_debrid_token^{user_id}")
             buttons.cb_buildbutton("🗑 debrid.token", f"configmenu^delete_debrid_token^{user_id}")
@@ -462,13 +458,14 @@ async def config_menu(user_id, message, edit=False):
 
 async def handle_botfiles(client, message):
     user_id = message.from_user.id
-    if config_dict["MULTI_RCLONE_CONFIG"]:
+    if (
+        not config_dict["MULTI_RCLONE_CONFIG"]
+        and CustomFilters.sudo_filter("", message)
+        or config_dict["MULTI_RCLONE_CONFIG"]
+    ):
         await config_menu(user_id, message)
     else:
-        if CustomFilters.sudo_filter("", message):
-            await config_menu(user_id, message)
-        else:
-            await sendMessage("Not allowed to use", message)
+        await sendMessage("Not allowed to use", message)
 
 
 async def botfiles_callback(client, callback_query):
@@ -481,14 +478,14 @@ async def botfiles_callback(client, callback_query):
     if int(cmd[-1]) != user_id:
         await query.answer("This menu is not for you!", show_alert=True)
         return
-    
+
     try:
         if cmd[1] == "get_rclone_conf":
             path = await get_rclone_path(user_id, message)
             await client.send_document(document=path, chat_id=message.chat.id)
             await query.answer()
         elif cmd[1] == "get_global_rclone_conf":
-            path = f"rclone/rclone_global/rclone.conf"
+            path = "rclone/rclone_global/rclone.conf"
             await client.send_document(
                     document=path, chat_id=message.chat.id
                 )
@@ -528,7 +525,7 @@ async def botfiles_callback(client, callback_query):
             await query.answer()
             await config_menu(user_id, message, True)
         elif cmd[1] == "delete_global_rclone_conf":
-            osremove(f"rclone/rclone_global/rclone.conf")
+            osremove("rclone/rclone_global/rclone.conf")
             await query.answer()
             await config_menu(user_id, message, True)
         elif cmd[1] == "delete_config_env":
@@ -551,8 +548,6 @@ async def botfiles_callback(client, callback_query):
         else:
             await query.answer()
             await message.delete()
-    except ValueError as err:
-        await sendMessage(str(err), message)
     except Exception as err:
         await sendMessage(str(err), message)
 

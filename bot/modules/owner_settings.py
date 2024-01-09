@@ -67,7 +67,7 @@ async def edit_menus(message, edit_type="env"):
 
 
 def get_env_menu():
-    msg = f"❇️<b>Config Variables Settings</b>"
+    msg = "❇️<b>Config Variables Settings</b>"
     msg += f"\n\n<b>State: {STATE.upper()} </b>"
     buttons = ButtonMaker()
     for k in list(config_dict.keys())[START : 10 + START]:
@@ -83,7 +83,7 @@ def get_env_menu():
         pages = int(x / 10)
     buttons.cb_buildbutton(f"🗓 {int(START/10)}/{pages}", "ownersetmenu^page")
     buttons.cb_buildbutton("⏪ BACK", "ownersetmenu^back^env", "footer")
-    buttons.cb_buildbutton("NEXT ⏩", f"ownersetmenu^next^env", "footer")
+    buttons.cb_buildbutton("NEXT ⏩", "ownersetmenu^next^env", "footer")
     buttons.cb_buildbutton("✘ Close Menu", "ownersetmenu^close", "footer_second")
     return msg, buttons
 
@@ -103,7 +103,7 @@ def get_qbit_menu():
         pages = int(x / 10)
     buttons.cb_buildbutton(f"🗓 {int(START/10)}/{pages}", "ownersetmenu^page")
     buttons.cb_buildbutton("⏪ BACK", "ownersetmenu^back^qbit", "footer")
-    buttons.cb_buildbutton("NEXT ⏩", f"ownersetmenu^next^qbit", "footer")
+    buttons.cb_buildbutton("NEXT ⏩", "ownersetmenu^next^qbit", "footer")
     buttons.cb_buildbutton("⬅️ Back", "ownersetmenu^back_menu", "footer_second")
     buttons.cb_buildbutton("✘ Close Menu", "ownersetmenu^close", "footer_third")
     return msg, buttons
@@ -242,7 +242,7 @@ async def ownerset_callback(client, callback_query):
                         await create_subprocess_exec("pkill", "-9", "-f", "gunicorn")
                     ).wait()
                     await create_subprocess_shell(
-                        f"gunicorn qbitweb.wserver:app --bind 0.0.0.0:80 --worker-class gevent"
+                        "gunicorn qbitweb.wserver:app --bind 0.0.0.0:80 --worker-class gevent"
                     )
             await query.answer("Reseted")
             config_dict[data[3]] = value

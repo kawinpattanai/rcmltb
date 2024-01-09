@@ -82,11 +82,7 @@ def get_user_settings(from_user):
         ytopt = "None"
 
     buttons.cb_buildbutton("Thumbnail", f"userset {user_id} sthumb")
-    if ospath.exists(thumbpath):
-        thumbmsg = "Exists"
-    else:
-        thumbmsg = "Not Exists"
-
+    thumbmsg = "Exists" if ospath.exists(thumbpath) else "Not Exists"
     buttons.cb_buildbutton("✘ Close Menu", f"userset {user_id} close")
 
     text = f"""

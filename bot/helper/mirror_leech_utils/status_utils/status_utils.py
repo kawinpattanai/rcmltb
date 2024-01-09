@@ -54,8 +54,8 @@ def get_progress_bar_string(pct):
 
 def get_progress_bar_rclone(percentage):
     return "{0}{1}".format(
-        "".join(["■" for i in range(floor(percentage / 10))]),
-        "".join(["□" for i in range(10 - floor(percentage / 10))]),
+        "".join(["■" for _ in range(floor(percentage / 10))]),
+        "".join(["□" for _ in range(10 - floor(percentage / 10))]),
     )
 
 

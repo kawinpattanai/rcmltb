@@ -57,7 +57,6 @@ class DbManager:
                 del row["_id"]
                 thumb_path = f"Thumbnails/{uid}.jpg"
                 rclone_user = f"rclone/{uid}/rclone.conf"
-                rclone_global = f"rclone/rclone_global/rclone.conf"
                 if row.get("thumb"):
                     if not ospath.exists("Thumbnails"):
                         makedirs("Thumbnails")
@@ -72,6 +71,7 @@ class DbManager:
                 if row.get("rclone_global"):
                     if not ospath.exists("rclone/rclone_global"):
                         makedirs("rclone/rclone_global")
+                    rclone_global = "rclone/rclone_global/rclone.conf"
                     with open(rclone_global, "wb+") as f:
                         f.write(row["rclone_global"])
             LOGGER.info("Users data has been imported from Database")

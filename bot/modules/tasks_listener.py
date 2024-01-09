@@ -402,17 +402,15 @@ class TaskListener:
         else:
             await sendMessage(f"Error: {err}", self.message)
             return
-        
+
         msg = f"<b>Total Files</b>: {data['count']}\n"
         size = human_readable_bytes(data['bytes'])
         msg += f"<b>Total Size</b>: {size}\n\n"
         msg += f"<b>cc: </b>{self.tag}"
 
         if is_gdrive:
-            link= ""
             id = await get_id(rclone_path, rc_config, folder_name, mime_type="Folder")
-            if id:
-                link = f"https://drive.google.com/drive/folders/{id}"
+            link = f"https://drive.google.com/drive/folders/{id}" if id else ""
             if link:
                 button.url_buildbutton("Cloud Link 🔗", link)
             else:

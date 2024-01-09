@@ -84,12 +84,11 @@ async def get_user_downloads(_, query):
     rd_client = RealDebrid(debrid_data.get("token", None))
     try:
         response = await run_sync_to_async(rd_client.get_user_downloads_list, 1, 50)
-        result = ""
-        for index, res in enumerate(response, start=1):
-            if res["download"]:
-                result += (
-                    f"{index}. <a href='{res['download']}'>{res['filename']}</a>\n"
-                )
+        result = "".join(
+            f"{index}. <a href='{res['download']}'>{res['filename']}</a>\n"
+            for index, res in enumerate(response, start=1)
+            if res["download"]
+        )
         await sendMessage(result, message)
     except ProviderException as e:
         await sendMessage(e.message, message)
@@ -105,9 +104,7 @@ async def add_magnet(client, query):
     try:
         if response := await client.listen.Message(filters.text, timeout=60):
             if response.text:
-                if "/ignore" in response.text:
-                    pass
-                else:
+                if "/ignore" not in response.text:
                     magnet = response.text.strip()
                     response = await run_sync_to_async(
                         rd_client.add_magent_link, magnet
@@ -179,9 +176,7 @@ async def delete_torrent(client, query):
     )
     try:
         if response := await client.listen.Message(filters.text, timeout=60):
-            if "/ignore" in response.text:
-                pass
-            else:
+            if "/ignore" not in response.text:
                 id = response.text.strip()
                 await run_sync_to_async(rd_client.delete_torrent, id)
                 await sendMessage("Torrent Deleted!!", query.message)
@@ -218,13 +213,10 @@ and to extract download link, /ignore to cancel""",
     )
     try:
         if response := await client.listen.Message(filters.text, timeout=60):
-            if "/ignore" in response.text:
-                pass
-            else:
+            if "/ignore" not in response.text:
                 magnet_link = response.text.strip()
                 if is_magnet(magnet_link):
-                    hash = re.search(HASH_REGEX, magnet_link).group(1)
-                    if hash:
+                    if hash := re.search(HASH_REGEX, magnet_link).group(1):
                         response = await run_sync_to_async(
                             rd_client.get_torrent_instant_availability, hash
                         )
@@ -281,17 +273,13 @@ async def generate_link(client, query):
     rd_client = RealDebrid(debrid_data.get("token", None))
     try:
         res = await run_sync_to_async(rd_client.get_hosts)
-        hosts = ""
-        for host in res:
-            hosts += f"{host}, "
+        hosts = "".join(f"{host}, " for host in res)
         question = await sendMessage(
             f"Send a link from the following hosters to unlock. \n/ignore to cancel\n\nSupported Hosts: {hosts}",
             message,
         )
         if response := await client.listen.Message(filters.text, timeout=60):
-            if "/ignore" in response.text:
-                pass
-            else:
+            if "/ignore" not in response.text:
                 link = response.text.strip()
                 res = await run_sync_to_async(rd_client.create_download_link, link)
                 await sendMessage(f"Link: {res['download']}", query.message)
@@ -340,18 +328,20 @@ async def rd_callback(client, query):
 
 async def real_debrid(_, message):
     buttons = ButtonMaker()
-    buttons.cb_buildbutton("Authorize", f"rd^auth")
-    buttons.cb_buildbutton("User Info", f"rd^uinf")
-    buttons.cb_buildbutton("User Torrents", f"rd^ut")
-    buttons.cb_buildbutton("User Downloads", f"rd^ud")
-    buttons.cb_buildbutton("Check Available", f"rd^cha")
-    buttons.cb_buildbutton("Generate Link", f"rd^gl")
-    buttons.cb_buildbutton("Add Magnet", f"rd^addm")
-    buttons.cb_buildbutton("Add Torrent", f"rd^addt")
-    buttons.cb_buildbutton("Delete Torrent", f"rd^delt")
+    buttons.cb_buildbutton("Authorize", "rd^auth")
+    buttons.cb_buildbutton("User Info", "rd^uinf")
+    buttons.cb_buildbutton("User Torrents", "rd^ut")
+    buttons.cb_buildbutton("User Downloads", "rd^ud")
+    buttons.cb_buildbutton("Check Available", "rd^cha")
+    buttons.cb_buildbutton("Generate Link", "rd^gl")
+    buttons.cb_buildbutton("Add Magnet", "rd^addm")
+    buttons.cb_buildbutton("Add Torrent", "rd^addt")
+    buttons.cb_buildbutton("Delete Torrent", "rd^delt")
     buttons.cb_buildbutton("✘ Close Menu", "rd^close", position="footer")
-    msg = "***DEBRID MENU***\n\n"
-    msg += "<b>Note:</b> Only support for real debrid for the moment"
+    msg = (
+        "***DEBRID MENU***\n\n"
+        + "<b>Note:</b> Only support for real debrid for the moment"
+    )
     await sendMessage(msg, message, buttons.build_menu(2))
 
 

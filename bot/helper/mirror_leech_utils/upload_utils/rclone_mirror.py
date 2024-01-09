@@ -39,11 +39,7 @@ class RcloneMirror:
     async def mirror(self):
         await self.delete_files_with_extensions()
 
-        if ospath.isdir(self.__path):
-            mime_type = "Folder"
-        else:
-            mime_type = "File"
-
+        mime_type = "Folder" if ospath.isdir(self.__path) else "File"
         conf_path = await get_rclone_path(self.__user_id, self.message)
         folder_name = self.name.replace(".", "")
         is_multi_remote_up = config_dict["MULTI_REMOTE_UP"]
@@ -62,34 +58,32 @@ class RcloneMirror:
             await self.upload(
                 self.__path, conf_path, mime_type, rc_remote, folder_name, base_dir
             )
+        elif DEFAULT_GLOBAL_REMOTE := config_dict["DEFAULT_GLOBAL_REMOTE"]:
+            await self.upload(
+                self.__path,
+                conf_path,
+                mime_type,
+                DEFAULT_GLOBAL_REMOTE,
+                folder_name,
+            )
         else:
-            DEFAULT_GLOBAL_REMOTE = config_dict["DEFAULT_GLOBAL_REMOTE"]
-            if DEFAULT_GLOBAL_REMOTE:
-                await self.upload(
-                    self.__path,
-                    conf_path,
-                    mime_type,
-                    DEFAULT_GLOBAL_REMOTE,
-                    folder_name,
-                )
-            else:
-                await self.__listener.onUploadError("DEFAULT_GLOBAL_REMOTE not found")
-                return
+            await self.__listener.onUploadError("DEFAULT_GLOBAL_REMOTE not found")
+            return
 
     async def upload(
         self, path, conf_path, mime_type, remote, folder_name, base_dir=""
     ):
         if mime_type == "Folder":
             self.name = folder_name
-            if base_dir:
-                rclone_path = f"{remote}:{base_dir}{folder_name}"
-            else:
-                rclone_path = f"{remote}:/{folder_name}"
+            rclone_path = (
+                f"{remote}:{base_dir}{folder_name}"
+                if base_dir
+                else f"{remote}:/{folder_name}"
+            )
+        elif base_dir:
+            rclone_path = f"{remote}:{base_dir}"
         else:
-            if base_dir:
-                rclone_path = f"{remote}:{base_dir}"
-            else:
-                rclone_path = f"{remote}:/"
+            rclone_path = f"{remote}:/"
 
         cmd = [
             "rclone",

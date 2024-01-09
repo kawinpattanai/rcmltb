@@ -449,14 +449,13 @@ async def getAllTasks(status: str):
 async def get_image_from_url(url, filename):
     async with ClientSession() as session:
         async with session.get(url) as response:
-            if response.status == 200:
-                content = await response.read()
-                file_path = ospath.join("images", f"{filename}.jpg")
-                directory = ospath.dirname(file_path)
-                if not await aiopath.exists(directory):
-                    await makedirs(directory)
-                with open(file_path, "wb") as f:
-                    f.write(content)
-                return file_path
-            else:
+            if response.status != 200:
                 return None
+            content = await response.read()
+            file_path = ospath.join("images", f"{filename}.jpg")
+            directory = ospath.dirname(file_path)
+            if not await aiopath.exists(directory):
+                await makedirs(directory)
+            with open(file_path, "wb") as f:
+                f.write(content)
+            return file_path

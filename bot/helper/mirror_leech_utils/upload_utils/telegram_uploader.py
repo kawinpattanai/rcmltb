@@ -271,7 +271,7 @@ class TelegramUploader:
                         disable_notification=True,
                         progress=self.__upload_progress,
                     )
-            elif is_image:
+            else:
                 if self.__is_cancelled:
                     return
                 if config_dict["LEECH_LOG"]:
@@ -363,37 +363,37 @@ class TelegramUploader:
                     inputs.append(InputMediaPhoto(m, cap))
                 else:
                     outputs.remove(m)
-            if outputs:
-                self.__sent_msg = (
-                    await self.__sent_msg.reply_media_group(
-                        media=inputs,
-                        quote=True,
-                        disable_notification=True,
-                    )
-                )[-1]
-                for m in outputs:
-                    await aioremove(m)
+        if outputs:
+            self.__sent_msg = (
+                await self.__sent_msg.reply_media_group(
+                    media=inputs,
+                    quote=True,
+                    disable_notification=True,
+                )
+            )[-1]
+            for m in outputs:
+                await aioremove(m)
 
     async def __prepare_file(self, file_, dirpath):
-        if len(file_) > 54:
-            if is_archive(file_):
-                name = get_base_name(file_)
-                ext = file_.split(name, 1)[1]
-            elif match := re_match(r".+(?=\..+\.0*\d+$)|.+(?=\.part\d+\..+)", file_):
-                name = match.group(0)
-                ext = file_.split(name, 1)[1]
-            elif len(fsplit := ospath.splitext(file_)) > 1:
-                name = fsplit[0]
-                ext = fsplit[1]
-            else:
-                name = file_
-                ext = ""
-            extn = len(ext)
-            remain = 54 - extn
-            name = name[:remain]
-            new_path = ospath.join(dirpath, f"{name}{ext}")
-            osrename(self.__upload_path, new_path)
-            self.__upload_path = new_path
+        if len(file_) <= 54:
+            return
+        if is_archive(file_):
+            name = get_base_name(file_)
+            ext = file_.split(name, 1)[1]
+        elif match := re_match(r".+(?=\..+\.0*\d+$)|.+(?=\.part\d+\..+)", file_):
+            name = match.group(0)
+            ext = file_.split(name, 1)[1]
+        elif len(fsplit := ospath.splitext(file_)) > 1:
+            name = fsplit[0]
+            ext = fsplit[1]
+        else:
+            name = file_
+            ext = ""
+        extn = len(ext)
+        name = name[:54 - extn]
+        new_path = ospath.join(dirpath, f"{name}{ext}")
+        osrename(self.__upload_path, new_path)
+        self.__upload_path = new_path
 
     @property
     def speed(self):

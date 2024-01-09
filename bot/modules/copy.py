@@ -129,9 +129,7 @@ async def copy_menu_callback(client, callback_query):
             )
             return
         origin_dir_list = origin_dir.split("/")[:-2]
-        origin_dir_string = ""
-        for dir in origin_dir_list:
-            origin_dir_string += dir + "/"
+        origin_dir_string = "".join(f"{dir}/" for dir in origin_dir_list)
         origin_dir = origin_dir_string
         update_rclone_data("COPY_ORIGIN_DIR", origin_dir, user_id)
         await list_folder(
@@ -150,9 +148,7 @@ async def copy_menu_callback(client, callback_query):
             )
             return
         destination_dir_list = destination_dir.split("/")[:-2]
-        destination_dir_string = ""
-        for dir in destination_dir_list:
-            destination_dir_string += dir + "/"
+        destination_dir_string = "".join(f"{dir}/" for dir in destination_dir_list)
         destination_dir = destination_dir_string
         update_rclone_data("COPY_DESTINATION_DIR", destination_dir, user_id)
         await list_folder(
@@ -221,12 +217,12 @@ async def next_page_copy(client, callback_query):
         destination_remote = get_rclone_data("COPY_DESTINATION_REMOTE", user_id)
         destination_dir = get_rclone_data("COPY_DESTINATION_DIR", user_id)
         msg = f"Select folder where you want to copy\n\nPath:<code>{destination_remote}:{destination_dir}</code>"
-        await editMessage(msg, message, reply_markup=buttons.build_menu(1))
     else:
         origin_remote = get_rclone_data("COPY_ORIGIN_REMOTE", user_id)
         origin_dir = get_rclone_data("COPY_ORIGIN_DIR", user_id)
         msg = f"Select file or folder which you want to copy\n\nPath:<code>{origin_remote}:{origin_dir}</code>"
-        await editMessage(msg, message, reply_markup=buttons.build_menu(1))
+
+    await editMessage(msg, message, reply_markup=buttons.build_menu(1))
 
 
 bot.add_handler(

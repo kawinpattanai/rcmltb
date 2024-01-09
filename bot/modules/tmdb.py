@@ -141,8 +141,8 @@ async def tmdb_next(_, query):
 
     total = len(info)
     offset = int(offset)
-    next_offset = int(offset) + 10
-    prev_offset = int(offset) - 10
+    next_offset = offset + 10
+    prev_offset = offset - 10
 
     page = tmdbPage(info, offset)
     await tmdb_menu_maker(type, page, button)
@@ -210,13 +210,11 @@ def tmdbPage(info, offset=0, max_results=10):
     total = len(info)
 
     if end > total:
-        page = info[start:]
+        return info[start:]
     elif start >= total:
-        page = []
+        return []
     else:
-        page = info[start:end]
-
-    return page
+        return info[start:end]
 
 
 async def tmdb_next_buttons_maker(
@@ -273,9 +271,7 @@ async def tmdb_search_api(client, query):
         if response := await client.listen.Message(
             filters.text, id=filters.user(user_id), timeout=60
         ):
-            if "/ignore" in response.text:
-                pass
-            else:
+            if "/ignore" not in response.text:
                 title = response.text
 
                 mv = Movie()

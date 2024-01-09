@@ -311,10 +311,7 @@ async def torrentSearchUpdate(_, query):
         key = title
     else:
         key = message.reply_to_message.text.split(maxsplit=1)
-        if len(key) > 1:
-            key = key[1].strip()
-        else:
-            key = None
+        key = key[1].strip() if len(key) > 1 else None
     if user_id != int(data[1]):
         await query.answer("Not Yours!", show_alert=True)
     if data[2].startswith("api"):
