@@ -141,8 +141,8 @@ def create_list(par, msg):
     if par.name != ".unwanted":
         msg[0] += "<ul>"
     for i in par.children:
+        msg[0] += "<li>"
         if i.is_folder:
-            msg[0] += "<li>"
             if i.name != ".unwanted":
                 msg[
                     0
@@ -151,7 +151,6 @@ def create_list(par, msg):
             msg[0] += "</li>"
             msg[1] += 1
         else:
-            msg[0] += "<li>"
             if i.priority == 0:
                 msg[
                     0

@@ -39,19 +39,18 @@ class RcloneLeech:
                 f"{self.__dest_path}",
                 "-P",
             ]
+        elif DEFAULT_GLOBAL_REMOTE := config_dict["DEFAULT_GLOBAL_REMOTE"]:
+            cmd = [
+                "rclone",
+                "copy",
+                f"--config={conf_path}",
+                f"{DEFAULT_GLOBAL_REMOTE}:{self.__origin_path}",
+                f"{self.__dest_path}",
+                "-P",
+            ]
         else:
-            if DEFAULT_GLOBAL_REMOTE := config_dict["DEFAULT_GLOBAL_REMOTE"]:
-                cmd = [
-                    "rclone",
-                    "copy",
-                    f"--config={conf_path}",
-                    f"{DEFAULT_GLOBAL_REMOTE}:{self.__origin_path}",
-                    f"{self.__dest_path}",
-                    "-P",
-                ]
-            else:
-                await self.__listener.onDownloadError("DEFAULT_GLOBAL_REMOTE not found")
-                return
+            await self.__listener.onDownloadError("DEFAULT_GLOBAL_REMOTE not found")
+            return
         await setRcloneFlags(cmd, "download")
         gid = "".join(SystemRandom().choices(ascii_letters + digits, k=10))
         if self.__isFolder:

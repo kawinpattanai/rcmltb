@@ -43,56 +43,57 @@ async def is_remote_selected(user_id, message):
 
 
 async def is_rclone_config(user_id, message, isLeech=False):
-    if config_dict["MULTI_RCLONE_CONFIG"]:
+    if (
+        not config_dict["MULTI_RCLONE_CONFIG"]
+        and CustomFilters.sudo(user_id)
+        or config_dict["MULTI_RCLONE_CONFIG"]
+    ):
         path = f"rclone/{user_id}/rclone.conf"
         no_path_msg = "Send a rclone config file, use /files command"
     else:
-        if CustomFilters.sudo(user_id):
-            path = f"rclone/{user_id}/rclone.conf"
-            no_path_msg = "Send a rclone config file, use /files command"
-        else:
-            path = f"rclone/rclone_global/rclone.conf"
-            no_path_msg = "Rclone config file not found"
+        path = "rclone/rclone_global/rclone.conf"
+        no_path_msg = "Rclone config file not found"
 
     if ospath.exists(path):
         return True
-    else:
-        if isLeech:
-            return True
-        else:
-            await sendMessage(no_path_msg, message)
-            return False
+    if isLeech:
+        return True
+    await sendMessage(no_path_msg, message)
+    return False
 
 
 async def get_rclone_path(user_id, message=None):
-    if config_dict["MULTI_RCLONE_CONFIG"]:
+    if (
+        not config_dict["MULTI_RCLONE_CONFIG"]
+        and CustomFilters.sudo(user_id)
+        or config_dict["MULTI_RCLONE_CONFIG"]
+    ):
         path = f"rclone/{user_id}/rclone.conf"
     else:
-        if CustomFilters.sudo(user_id):
-            path = f"rclone/{user_id}/rclone.conf"
-        else:
-            path = f"rclone/rclone_global/rclone.conf"
+        path = "rclone/rclone_global/rclone.conf"
 
     if ospath.exists(path):
         return path
-    else:
-        await sendMessage("Rclone path not found", message)
-        raise NotRclonePathFound(f"ERROR: Rclone path not found")
+    await sendMessage("Rclone path not found", message)
+    raise NotRclonePathFound("ERROR: Rclone path not found")
 
 
 async def setRcloneFlags(cmd, type):
     cmd.extend(("--exclude", "*.{" + ",".join(GLOBAL_EXTENSION_FILTER) + "}"))
     if config_dict["SERVER_SIDE"]:
         cmd.append("--drive-server-side-across-configs")
-    if type == "copy":
-        if flags := config_dict.get("RCLONE_COPY_FLAGS"):
-            append_flags(flags, cmd)
-    elif type == "upload":
-        if flags := config_dict.get("RCLONE_UPLOAD_FLAGS"):
-            append_flags(flags, cmd)
-    elif type == "download":
-        if flags := config_dict.get("RCLONE_DOWNLOAD_FLAGS"):
-            append_flags(flags, cmd)
+    if (
+        type == "copy"
+        and (flags := config_dict.get("RCLONE_COPY_FLAGS"))
+        or type != "copy"
+        and type == "download"
+        and (flags := config_dict.get("RCLONE_DOWNLOAD_FLAGS"))
+        or type != "copy"
+        and type != "download"
+        and type == "upload"
+        and (flags := config_dict.get("RCLONE_UPLOAD_FLAGS"))
+    ):
+        append_flags(flags, cmd)
 
 
 def append_flags(flags, cmd):
@@ -157,7 +158,7 @@ async def list_remotes(
         msg = "Select cloud to view info"
     elif menu_type == Menus.MIRROR_SELECT:
         if config_dict["MULTI_REMOTE_UP"]:
-            msg = f"Select all clouds where you want to upload file"
+            msg = "Select all clouds where you want to upload file"
             buttons.cb_buildbutton("🔄 Reset", f"{menu_type}^reset^{user_id}" ,"footer")
         else:
             remote = get_rclone_data("MIRROR_SELECT_REMOTE", user_id)
@@ -183,11 +184,10 @@ async def is_valid_path(remote, path, message):
     cmd = ["rclone", "lsjson", f"--config={rc_path}", f"{remote}:{path}"]
     process = await create_subprocess_exec(*cmd, stdout=PIPE)
     return_code = await process.wait()
-    if return_code != 0:
-        LOGGER.info("Error: Path not valid")
-        return False
-    else:
+    if return_code == 0:
         return True
+    LOGGER.info("Error: Path not valid")
+    return False
 
 
 async def list_folder(
@@ -263,9 +263,7 @@ async def list_folder(
             file_callback = "copy"
             dir_callback = "dest_dir"
             back_callback = "back_dest"
-            buttons.cb_buildbutton(
-                f"✅ Select this folder", f"{menu_type}^copy^{user_id}"
-            )
+            buttons.cb_buildbutton("✅ Select this folder", f"{menu_type}^copy^{user_id}")
             cmd.extend(["--dirs-only", "--fast-list", "--no-modtime"])
             msg = f"Select folder where you want to copy\n\n<b>Path: </b><code>{rclone_remote}:{base_dir}</code>"
         else:
@@ -273,7 +271,8 @@ async def list_folder(
             dir_callback = "origin_dir"
             back_callback = "back_origin"
             buttons.cb_buildbutton(
-                f"✅ Select this folder", f"{menu_type}^second_menu^_^False^{user_id}"
+                "✅ Select this folder",
+                f"{menu_type}^second_menu^_^False^{user_id}",
             )
             cmd.extend(["--fast-list", "--no-modtime"])
             msg = f"Select file or folder which you want to copy\n\n<b>Path: </b><code>{rclone_remote}:{base_dir}</code>"
@@ -307,16 +306,11 @@ async def list_folder(
             user_id=user_id,
         )
 
-        if total <= 10:
-            buttons.cb_buildbutton(
-                f"🗓 {round(0 / 10) + 1} / {round(total / 10)}",
-                f"{menu_type}^pages^{user_id}" "footer",
-            )
-        else:
-            buttons.cb_buildbutton(
-                f"🗓 {round(0 / 10) + 1} / {round(total / 10)}",
-                f"{menu_type}^pages^{user_id}" "footer",
-            )
+        buttons.cb_buildbutton(
+            f"🗓 {round(0 / 10) + 1} / {round(total / 10)}",
+            f"{menu_type}^pages^{user_id}" "footer",
+        )
+        if total > 10:
             buttons.cb_buildbutton(
                 "NEXT ⏩",
                 f"{next_type} {next_offset} {is_second_menu} {back_callback}",
@@ -359,7 +353,7 @@ async def create_next_buttons(
             f"{filter} {_next_offset} {is_second_menu} {data_back_cb}",
             "footer",
         )
-    elif next_offset >= total:
+    elif next_offset >= total or next_offset + 10 > total:
         buttons.cb_buildbutton(
             "⏪ BACK",
             f"{filter} {prev_offset} {is_second_menu} {data_back_cb}",
@@ -367,17 +361,6 @@ async def create_next_buttons(
         )
         buttons.cb_buildbutton(
             f"🗓 {round(int(next_offset) / 10) + 1} / {round(total / 10)}",
-            f"{menu_type}^pages",
-            "footer",
-        )
-    elif next_offset + 10 > total:
-        buttons.cb_buildbutton(
-            "⏪ BACK",
-            f"{filter} {prev_offset} {is_second_menu} {data_back_cb}",
-            "footer",
-        )
-        buttons.cb_buildbutton(
-            f"🗓 {round(int(next_offset) / 10) + 1} / {round(total / 10)}", 
             f"{menu_type}^pages",
             "footer",
         )
@@ -420,8 +403,6 @@ async def get_id(rclone_path, config_path, name, mime_type):
     res, err, code = await cmd_exec(cmd)
     id = ""
     if code == 0:
-        id = next((d["ID"] for d in jsonloads(res) if d["Path"] == name), "err")
-    else:
-        LOGGER.error(f"Error while getting link. Error: {err}")
-        id = "err"
-    return id
+        return next((d["ID"] for d in jsonloads(res) if d["Path"] == name), "err")
+    LOGGER.error(f"Error while getting link. Error: {err}")
+    return "err"

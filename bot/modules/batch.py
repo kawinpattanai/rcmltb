@@ -42,9 +42,7 @@ async def _batch(client, message, isLeech=False):
             filters.document | filters.text, id=filters.user(user_id), timeout=60
         )
         if response.text:
-            if "/ignore" in response.text:
-                pass
-            else:
+            if "/ignore" not in response.text:
                 lines = response.text.split("\n")
                 if len(lines) > 1:
                     username = ""
@@ -66,39 +64,32 @@ async def _batch(client, message, isLeech=False):
                             )
                         else:
                             msg = f"/leech {link}" if isLeech else f"/mirror {link}"
-                        if isLeech:
-                            msg = await bot.send_message(
-                                message.chat.id, msg, disable_web_page_preview=True
-                            )
-                        else:
-                            msg = await bot.send_message(
-                                message.chat.id, msg, disable_web_page_preview=True
-                            )
+                        msg = await bot.send_message(
+                            message.chat.id, msg, disable_web_page_preview=True
+                        )
                         msg = await client.get_messages(message.chat.id, msg.id)
                         msg.from_user = message.from_user
                         create_task(mirror_leech, client, msg, isLeech=isLeech)
                         await sleep(7)
-                else:
-                    _link = get_link(response.text)
-                    if _link:
-                        await sendMessage(
-                            "Send me the number of files to save from given link, /ignore to cancel",
-                            message,
+                elif _link := get_link(response.text):
+                    await sendMessage(
+                        "Send me the number of files to save from given link, /ignore to cancel",
+                        message,
+                    )
+                    try:
+                        response = await client.listen.Message(
+                            filters.text, id=filters.user(user_id), timeout=60
                         )
-                        try:
-                            response = await client.listen.Message(
-                                filters.text, id=filters.user(user_id), timeout=60
-                            )
-                            if "/ignore" in response.text:
-                                return
-                            else:
-                                multi = int(response.text)
-                            await download(message, _link, multi, isLeech=isLeech)
-                        except ValueError:
-                            await sendMessage("Range must be an integer!", message)
-                        except FloodWait as fw:
-                            await sleep(fw.seconds + 5)
-                            await download(message, _link, multi, isLeech=isLeech)
+                        if "/ignore" in response.text:
+                            return
+                        else:
+                            multi = int(response.text)
+                        await download(message, _link, multi, isLeech=isLeech)
+                    except ValueError:
+                        await sendMessage("Range must be an integer!", message)
+                    except FloodWait as fw:
+                        await sleep(fw.seconds + 5)
+                        await download(message, _link, multi, isLeech=isLeech)
         else:
             file_name = response.document.file_name
             if file_name.split(".")[1] in ["txt", ".txt"]:

@@ -121,12 +121,7 @@ def is_mega_link(url):
 
 
 def get_mega_link_type(url):
-    if "folder" in url:
-        return "folder"
-    elif "/#F!" in url:
-        return "folder"
-    else:
-        return "file"
+    return "folder" if "folder" in url or "/#F!" in url else "file"
 
 
 def is_magnet(url):
@@ -210,10 +205,7 @@ def get_readable_message():
             MirrorStatus.STATUS_SPLITTING,
             MirrorStatus.STATUS_SEEDING,
         ]:
-            if (
-                download.type() == TaskType.RCLONE
-                or download.type() == TaskType.RCLONE_SYNC
-            ):
+            if download.type() in [TaskType.RCLONE, TaskType.RCLONE_SYNC]:
                 msg += f"\n{get_progress_bar_rclone(download.progress())} {download.progress()}%"
                 msg += f"\n<b>Processed:</b> {download.processed_bytes()}"
             else:
@@ -313,18 +305,12 @@ class setInterval:
 async def run_sync_to_async(func, *args, wait=True, **kwargs):
     pfunc = partial(func, *args, **kwargs)
     future = bot_loop.run_in_executor(THREADPOOL, pfunc)
-    if wait:
-        return await future
-    else:
-        return future
+    return await future if wait else future
 
 
 def run_async_to_sync(func, *args, wait=True, **kwargs):
     future = run_coroutine_threadsafe(func(*args, **kwargs), bot_loop)
-    if wait:
-        return future.result()
-    else:
-        return future
+    return future.result() if wait else future
 
 
 def create_task(func, *args, **kwargs):
@@ -363,10 +349,7 @@ def run_thread_dec(func):
     @wraps(func)
     def wrapper(*args, wait=False, **kwargs):
         future = run_coroutine_threadsafe(func(*args, **kwargs), bot_loop)
-        if wait:
-            return future.result()
-        else:
-            return future
+        return future.result() if wait else future
 
     return wrapper
 

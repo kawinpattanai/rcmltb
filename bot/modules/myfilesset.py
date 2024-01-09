@@ -33,26 +33,25 @@ async def myfiles_settings(message, remote, remote_path, edit=False, is_folder=F
         buttons.cb_buildbutton(
             "🗑 Delete duplicate files", f"myfilesmenu^dedupe^{user_id}"
         )
+    elif is_folder:
+        buttons.cb_buildbutton(
+            "📁 Folder size", f"myfilesmenu^size^{user_id}"
+        )
+        buttons.cb_buildbutton(
+            "🗑 Delete duplicate files", f"myfilesmenu^dedupe^{user_id}"
+        )
+        buttons.cb_buildbutton(
+            "🗑 Delete folder", f"myfilesmenu^delete^folder^{user_id}"
+        )
+        buttons.cb_buildbutton(
+            "📁 Create empty dir", f"myfilesmenu^mkdir^{user_id}"
+        )
+        buttons.cb_buildbutton(
+            "🗑 Delete empty dir", f"myfilesmenu^rmdir^{user_id}"
+        )
     else:
-        if is_folder:
-            buttons.cb_buildbutton(
-                "📁 Folder size", f"myfilesmenu^size^{user_id}"
-            )
-            buttons.cb_buildbutton(
-                "🗑 Delete duplicate files", f"myfilesmenu^dedupe^{user_id}"
-            )
-            buttons.cb_buildbutton(
-                "🗑 Delete folder", f"myfilesmenu^delete^folder^{user_id}"
-            )
-            buttons.cb_buildbutton(
-                "📁 Create empty dir", f"myfilesmenu^mkdir^{user_id}"
-            )
-            buttons.cb_buildbutton(
-                "🗑 Delete empty dir", f"myfilesmenu^rmdir^{user_id}"
-            )
-        else:
-            buttons.cb_buildbutton("📝 Rename", f"myfilesmenu^rename^file^{user_id}")
-            buttons.cb_buildbutton("🗑 Delete", f"myfilesmenu^delete^file^{user_id}")
+        buttons.cb_buildbutton("📝 Rename", f"myfilesmenu^rename^file^{user_id}")
+        buttons.cb_buildbutton("🗑 Delete", f"myfilesmenu^delete^file^{user_id}")
 
     buttons.cb_buildbutton(
         "⬅️ Back", f"myfilesmenu^back_remotes_menu^{user_id}", "footer"
@@ -160,11 +159,11 @@ async def delete_selection(message, user_id, is_folder=False):
     if is_folder:
         buttons.cb_buildbutton("Yes", f"myfilesmenu^yes^folder^{user_id}")
         buttons.cb_buildbutton("No", f"myfilesmenu^no^folder^{user_id}")
-        msg += f"Are you sure you want to delete this folder permanently?"
+        msg += "Are you sure you want to delete this folder permanently?"
     else:
         buttons.cb_buildbutton("Yes", f"myfilesmenu^yes^file^{user_id}")
         buttons.cb_buildbutton("No", f"myfilesmenu^no^file^{user_id}")
-        msg += f"Are you sure you want to delete this file permanently?"
+        msg += "Are you sure you want to delete this file permanently?"
     await editMessage(msg, message, reply_markup=buttons.build_menu(2))
 
 
@@ -174,10 +173,10 @@ async def delete_selected(message, user_id, remote_path, remote, is_folder=False
     conf_path = await get_rclone_path(user_id, message)
     if is_folder:
         await rclone_purge(message, remote_path, remote, conf_path)
-        msg += f"The folder has been deleted successfully!!"
+        msg += "The folder has been deleted successfully!!"
     else:
         await rclone_delete(message, remote_path, remote, conf_path)
-        msg += f"The file has been deleted successfully!!"
+        msg += "The file has been deleted successfully!!"
     buttons.cb_buildbutton(
         "⬅️ Back", f"myfilesmenu^back_remotes_menu^{user_id}", "footer"
     )
@@ -304,8 +303,10 @@ async def rclone_mkdir(client, message, remote, remote_path, tag):
 
 
 async def rclone_dedupe(message, remote, remote_path, user_id, tag):
-    msg = "**⏳Deleting duplicate files**\n"
-    msg += "\nIt may take some time depending on number of duplicates files"
+    msg = (
+        "**⏳Deleting duplicate files**\n"
+        + "\nIt may take some time depending on number of duplicates files"
+    )
     edit_msg = await editMessage(msg, message)
     conf_path = await get_rclone_path(user_id, message)
     cmd = [

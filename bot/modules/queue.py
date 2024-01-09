@@ -47,14 +47,10 @@ async def queue_worker(name, queue):
                     bot_loop,
                 )
             queue.task_done()
-        except RuntimeError as runtime_error:
+        except (RuntimeError, CancelledError, GeneratorExit) as runtime_error:
             if bot_loop.is_closed():
                 return
             raise runtime_error
-        except CancelledError:
-            return
-        except GeneratorExit:
-            return
         except KeyboardInterrupt:
             return
         except Exception as excp:

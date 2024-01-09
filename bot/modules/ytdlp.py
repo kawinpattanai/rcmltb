@@ -34,11 +34,6 @@ async def select_format(_, query):
         await editMessage("This is an old task", message)
         return
 
-    listener = task_info[0]
-    link = task_info[1]
-    path = task_info[2]
-    name = task_info[3]
-    opt = task_info[4]
     formats = task_info[5]
     is_playlist = task_info[6]
 
@@ -71,8 +66,13 @@ async def select_format(_, query):
         if qual is None:
             return
 
-        LOGGER.info(f"Downloading with YT-DLP")
+        LOGGER.info("Downloading with YT-DLP")
+        listener = task_info[0]
         ydl = YoutubeDLHelper(listener)
+        link = task_info[1]
+        path = task_info[2]
+        name = task_info[3]
+        opt = task_info[4]
         await ydl.add_download(link, path, name, qual, is_playlist, opt)
 
 
@@ -249,13 +249,9 @@ async def _ytdl(client, message, isLeech=False, sameDir=None):
     qual = ""
 
     if not isLeech:
-        if await is_rclone_config(user_id, message):
-            pass
-        else:
+        if not await is_rclone_config(user_id, message):
             return
-        if await is_remote_selected(user_id, message):
-            pass
-        else:
+        if not await is_remote_selected(user_id, message):
             return
 
     try:
@@ -356,7 +352,7 @@ async def _ytdl(client, message, isLeech=False, sameDir=None):
             qual = user_dict["yt_opt"]
 
     if qual:
-        LOGGER.info(f"Downloading with YT-DLP")
+        LOGGER.info("Downloading with YT-DLP")
         playlist = "entries" in result
         ydl = YoutubeDLHelper(listener)
         await ydl.add_download(link, path, name, qual, playlist, opt)

@@ -59,7 +59,7 @@ class RcloneCopy:
             folder_name = ospath.splitext(origin_dir)[0]
         else:
             folder_name = origin_dir
-            
+
         destination = f"{dest_remote}:{dest_dir}{folder_name}"
 
         cmd = [
@@ -102,7 +102,7 @@ class RcloneCopy:
                     await self.copy(origin_remote, origin_dir, dest_remote, dest_dir)
                     return
                 else:
-                    LOGGER.info(f"Reached maximum number of service accounts")
+                    LOGGER.info("Reached maximum number of service accounts")
             await self.__listener.onDownloadError(err)
 
     def __switchServiceAccount(self):
@@ -114,8 +114,7 @@ class RcloneCopy:
         LOGGER.info(f"Switching to {self.__service_account_index}.json service account")
 
     def __create_teamdrive_sa_config(self, conf_path, id):
-        rc_content = "type = drive\n"
-        rc_content += "scope = drive\n"
+        rc_content = "type = drive\n" + "scope = drive\n"
         rc_content += (
             f"service_account_file = accounts/{self.__service_account_index}.json\n"
         )

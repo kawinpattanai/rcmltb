@@ -85,8 +85,8 @@ async def rclone_about(message, query, remote_name, user_id):
 
 def get_used_bar(percentage):
     return "{0}{1}".format(
-        "".join(["■" for i in range(floor(percentage / 10))]),
-        "".join(["□" for i in range(10 - floor(percentage / 10))]),
+        "".join(["■" for _ in range(floor(percentage / 10))]),
+        "".join(["□" for _ in range(10 - floor(percentage / 10))]),
     )
 
 

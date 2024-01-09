@@ -23,13 +23,13 @@ async def cleanup_callback(client, callback_query):
     data = query.data
     cmd = data.split("^")
     message = query.message
-    tag = f"@{message.reply_to_message.from_user.username}"
     user_id = query.from_user.id
 
     if int(cmd[-1]) != user_id:
         await query.answer("This menu is not for you!", show_alert=True)
         return
     if cmd[1] == "remote":
+        tag = f"@{message.reply_to_message.from_user.username}"
         await rclone_cleanup(message, cmd[2], user_id, tag)
     elif cmd[1] == "back":
         await list_remotes(message, menu_type="cleanupmenu", edit=True)
@@ -41,8 +41,10 @@ async def cleanup_callback(client, callback_query):
 
 async def rclone_cleanup(message, remote_name, user_id, tag):
     conf_path = await get_rclone_path(user_id, message)
-    msg = "**⏳Cleaning remote trash**\n"
-    msg += "\nIt may take some time depending on number of files"
+    msg = (
+        "**⏳Cleaning remote trash**\n"
+        + "\nIt may take some time depending on number of files"
+    )
     edit_msg = await editMessage(msg, message)
     cmd = ["rclone", "cleanup", f"--config={conf_path}", f"{remote_name}:"]
     process = await exec(*cmd, stdout=PIPE, stderr=PIPE)

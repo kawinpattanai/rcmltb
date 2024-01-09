@@ -90,7 +90,7 @@ async def leech_menu_cb(_, callback_query):
         await list_folder(message, cmd[2], "", menu_type=Menus.LEECH, edit=True)
     elif cmd[1] == "remote_dir":
         path = get_rclone_data(cmd[2], user_id)
-        base_dir += path + "/"
+        base_dir += f"{path}/"
         if await is_valid_path(rclone_remote, base_dir, message):
             update_rclone_data("LEECH_BASE_DIR", base_dir, user_id)
             await list_folder(
@@ -116,9 +116,7 @@ async def leech_menu_cb(_, callback_query):
             await list_remotes(message, menu_type=Menus.LEECH, edit=True)
             return
         base_dir_split = base_dir.split("/")[:-2]
-        base_dir_string = ""
-        for dir in base_dir_split:
-            base_dir_string += dir + "/"
+        base_dir_string = "".join(f"{dir}/" for dir in base_dir_split)
         base_dir = base_dir_string
         update_rclone_data("LEECH_BASE_DIR", base_dir, user_id)
         await list_folder(
@@ -144,7 +142,9 @@ async def next_page_leech(_, callback_query):
     prev_offset = next_offset - 10
 
     buttons = ButtonMaker()
-    buttons.cb_buildbutton(f"✅ Select this folder", f"leechmenu^leech_folder^{user_id}")
+    buttons.cb_buildbutton(
+        "✅ Select this folder", f"leechmenu^leech_folder^{user_id}"
+    )
 
     next_info, _next_offset = await run_sync_to_async(
         rcloneListNextPage, info, next_offset

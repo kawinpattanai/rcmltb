@@ -131,15 +131,14 @@ class RealDebrid:
             response_data["client_id"], response_data["client_secret"], device_code
         )
 
-        if "access_token" in token_data:
-            token = self.encode_token_data(
-                response_data["client_id"],
-                response_data["client_secret"],
-                token_data["refresh_token"],
-            )
-            return {"token": token}
-        else:
+        if "access_token" not in token_data:
             return token_data
+        token = self.encode_token_data(
+            response_data["client_id"],
+            response_data["client_secret"],
+            token_data["refresh_token"],
+        )
+        return {"token": token}
 
     def get_hosts(self):
         return self._make_request("GET", f"{self.BASE_URL}/hosts")

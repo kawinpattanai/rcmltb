@@ -249,7 +249,7 @@ async def create_mirror_help_buttons():
     buttons = ButtonMaker()
     for name in list(MIRROR_HELP_DICT.keys())[2:]:
         buttons.cb_buildbutton(name, f"help m {name}")
-    buttons.cb_buildbutton("✘ Close Menu", f"help close", "footer")
+    buttons.cb_buildbutton("✘ Close Menu", "help close", "footer")
     MIRROR_HELP_DICT["Menu"] = buttons.build_menu(3)
 
 
@@ -257,7 +257,7 @@ async def create_ytdl_help_buttons():
     buttons = ButtonMaker()
     for name in list(YT_HELP_DICT.keys())[2:]:
         buttons.cb_buildbutton(name, f"help y {name}")
-    buttons.cb_buildbutton("✘ Close Menu", f"help close", "footer")
+    buttons.cb_buildbutton("✘ Close Menu", "help close", "footer")
     YT_HELP_DICT["Menu"] = buttons.build_menu(3)
 
 
@@ -265,7 +265,7 @@ async def create_leech_help_buttons():
     buttons = ButtonMaker()
     for name in list(LEECH_HELP_DICT.keys())[2:]:
         buttons.cb_buildbutton(name, f"help l {name}")
-    buttons.cb_buildbutton("✘ Close Menu", f"help close", "footer")
+    buttons.cb_buildbutton("✘ Close Menu", "help close", "footer")
     LEECH_HELP_DICT["Menu"] = buttons.build_menu(3)
 
 
@@ -273,7 +273,7 @@ async def create_batch_help_buttons():
     buttons = ButtonMaker()
     for name in list(BATCH_HELP_DICT.keys())[2:]:
         buttons.cb_buildbutton(name, f"help b {name}")
-    buttons.cb_buildbutton("✘ Close Menu", f"help close", "footer")
+    buttons.cb_buildbutton("✘ Close Menu", "help close", "footer")
     BATCH_HELP_DICT["Menu"] = buttons.build_menu(3)
 
 
@@ -295,19 +295,19 @@ async def help_callback(_, query):
             await editMessage(YT_HELP_DICT["Cmd"], message, YT_HELP_DICT["Menu"])
     elif data[1] == "m":
         buttons = ButtonMaker()
-        buttons.cb_buildbutton("⬅️ Back", f"help back m")
+        buttons.cb_buildbutton("⬅️ Back", "help back m")
         await editMessage(MIRROR_HELP_DICT[data[2]], message, buttons.build_menu())
     elif data[1] == "y":
         buttons = ButtonMaker()
-        buttons.cb_buildbutton("⬅️ Back", f"help back y")
+        buttons.cb_buildbutton("⬅️ Back", "help back y")
         await editMessage(YT_HELP_DICT[data[2]], message, buttons.build_menu())
     elif data[1] == "l":
         buttons = ButtonMaker()
-        buttons.cb_buildbutton("⬅️ Back", f"help back l")
+        buttons.cb_buildbutton("⬅️ Back", "help back l")
         await editMessage(LEECH_HELP_DICT[data[2]], message, buttons.build_menu())
     elif data[1] == "b":
         buttons = ButtonMaker()
-        buttons.cb_buildbutton("⬅️ Back", f"help back b")
+        buttons.cb_buildbutton("⬅️ Back", "help back b")
         await editMessage(BATCH_HELP_DICT[data[2]], message, buttons.build_menu())
 
 
